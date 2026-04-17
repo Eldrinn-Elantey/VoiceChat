@@ -2,6 +2,8 @@ package net.gliby.voicechat.client;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.gliby.voicechat.VoiceChat;
 import net.gliby.voicechat.client.device.Device;
@@ -37,6 +39,7 @@ public class Settings {
     private boolean voiceIconsAllowed = true;
     private int bufferSize = 144;
     private int modPackId = 1;
+    private Map<String, Float> playerVolumes = new HashMap<String, Float>();
     Configuration configuration;
 
     public Settings(File file) {
@@ -142,6 +145,23 @@ public class Settings {
 
     public float getWorldVolume() {
         return worldVolume;
+    }
+
+    public float getPlayerVolume(String playerName) {
+        Float volume = playerVolumes.get(playerName);
+        return volume != null ? volume : 1.0f;
+    }
+
+    public void setPlayerVolume(String playerName, float volume) {
+        playerVolumes.put(playerName, volume);
+    }
+
+    public Map<String, Float> getPlayerVolumes() {
+        return playerVolumes;
+    }
+
+    public void setPlayerVolumes(Map<String, Float> volumes) {
+        this.playerVolumes = volumes;
     }
 
     public void init() {

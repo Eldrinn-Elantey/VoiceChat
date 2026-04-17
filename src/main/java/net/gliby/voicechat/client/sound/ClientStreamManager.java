@@ -65,6 +65,10 @@ public class ClientStreamManager {
 
     private final VoiceChatClient voiceChat;
 
+    public VoiceChatClient getVoiceChat() {
+        return voiceChat;
+    }
+
     private boolean volumeControlActive;
 
     private final float volumeValue = 0.15F;
@@ -134,6 +138,7 @@ public class ClientStreamManager {
         SoundSystem sndSystem = mc.getSoundHandler().sndManager.sndSystem;
         final String identifier = generateSource(data.id);
         final PlayerProxy player = getPlayerData(data.id);
+
         if (data.direct) {
             final Vector3f position = player.position();
             sndSystem.rawDataStream(
@@ -146,28 +151,35 @@ public class ClientStreamManager {
                 SoundSystemConfig.ATTENUATION_LINEAR,
                 voiceChat.getSettings()
                     .getSoundDistance());
-        } else sndSystem.rawDataStream(
-            universalAudioFormat,
-            true,
-            identifier,
-            (float) mc.thePlayer.posX,
-            (float) mc.thePlayer.posY,
-            (float) mc.thePlayer.posZ,
-            SoundSystemConfig.ATTENUATION_LINEAR,
-            voiceChat.getSettings()
-                .getSoundDistance());
-        sndSystem.setPitch(identifier, 1.0f);
-        if (data.volume != -1) {
-            sndSystem.setVolume(
-                identifier,
-                voiceChat.getSettings()
-                    .getWorldVolume() * data.volume);
         } else {
-            sndSystem.setVolume(
+            sndSystem.rawDataStream(
+                universalAudioFormat,
+                true,
                 identifier,
+                (float) mc.thePlayer.posX,
+                (float) mc.thePlayer.posY,
+                (float) mc.thePlayer.posZ,
+                SoundSystemConfig.ATTENUATION_LINEAR,
                 voiceChat.getSettings()
-                    .getWorldVolume());
+                    .getSoundDistance());
         }
+
+        sndSystem.setPitch(identifier, 1.0f);
+
+        String playerName = player.entityName();
+        float playerVolume = voiceChat.getSettings()
+            .getPlayerVolume(playerName);
+
+        float effectiveVolume;
+        if (data.volume != -1) {
+            effectiveVolume = voiceChat.getSettings()
+                .getWorldVolume() * (data.volume * 0.01F)
+                * Math.min(playerVolume, 1.0f);
+        } else {
+            effectiveVolume = voiceChat.getSettings()
+                .getWorldVolume() * Math.min(playerVolume, 1.0f);
+        }
+        sndSystem.setVolume(identifier, effectiveVolume);
         addStreamSafe(new ClientStream(player, data.id, data.direct));
         giveStream(data);
     }
@@ -217,7 +229,22 @@ public class ClientStreamManager {
         if (stream != null) {
             final String identifier = generateSource(data.id);
             stream.update(data, (int) (System.currentTimeMillis() - stream.lastUpdated));
-            stream.buffer.push(data.data);
+
+            String playerName = stream.player.entityName();
+            float playerVolume = voiceChat.getSettings()
+                .getPlayerVolume(playerName);
+
+            float pcmGain = 1.0f;
+            if (playerVolume > 1.0f) {
+                pcmGain = 1.0f + (playerVolume - 1.0f) * 3.0f;
+            }
+
+            byte[] audioData = data.data;
+            if (pcmGain > 1.0f && audioData != null) {
+                audioData = AudioUtils.amplify(audioData, pcmGain);
+            }
+
+            stream.buffer.push(audioData);
             stream.buffer.updateJitter(stream.getJitterRate());
             if (stream.buffer.isReady() || stream.needsEnd) {
                 sndSystem.flush(identifier);
