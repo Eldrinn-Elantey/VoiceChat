@@ -112,7 +112,8 @@ public class GuiInGameHandlerVoiceChat extends Gui {
                 .isRecorderActive()) fade += 0.01f * delta;
             else fade = 1.0f;
 
-            if (fade != 0) {
+            if (fade != 0 && voiceChat.getSettings()
+                .isSpeakingIndicatorAllowed()) {
                 positionUI = voiceChat.getSettings()
                     .getUIPositionSpeak();
                 position = getPosition(width, height, positionUI);

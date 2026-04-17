@@ -28,6 +28,8 @@ public class Configuration {
     private JINIFile init;
     private final Settings settings;
     private static final String PLAYER_VOLUMES = "PlayerVolumes";
+    private static final String SHOW_VOICE_ICONS = "ShowVoiceIcons", SHOW_VOICE_PLATES = "ShowVoicePlates",
+        SHOW_SPEAKING_INDICATOR = "ShowSpeakingIndicator";
 
     Configuration(Settings settings, File file) {
         this.settings = settings;
@@ -100,6 +102,10 @@ public class Configuration {
                     Float.parseFloat(positionArray[3]),
                     Integer.parseInt(positionArray[2]));
 
+                settings.setVoiceIconsAllowed(init.ReadBool("Interface", SHOW_VOICE_ICONS, true));
+                settings.setVoicePlatesAllowed(init.ReadBool("Interface", SHOW_VOICE_PLATES, true));
+                settings.setSpeakingIndicatorAllowed(init.ReadBool("Interface", SHOW_SPEAKING_INDICATOR, true));
+
                 settings.setSnooperAllowed(init.ReadBool("Miscellaneous", SNOOPER, false));
                 settings.setModPackID(init.ReadInteger("Miscellaneous", MODPACK_ID, 1));
                 settings.setDebug(init.ReadBool("Miscellaneous", DEBUG, false));
@@ -165,6 +171,10 @@ public class Configuration {
                 + settings.getUIPositionPlate().type
                 + ":"
                 + settings.getUIPositionPlate().scale);
+
+        init.WriteBool("Interface", SHOW_VOICE_ICONS, settings.isVoiceIconAllowed());
+        init.WriteBool("Interface", SHOW_VOICE_PLATES, settings.isVoicePlateAllowed());
+        init.WriteBool("Interface", SHOW_SPEAKING_INDICATOR, settings.isSpeakingIndicatorAllowed());
 
         init.WriteString(
             "Miscellaneous",
