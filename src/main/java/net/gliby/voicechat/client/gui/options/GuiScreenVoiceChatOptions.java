@@ -10,7 +10,7 @@ import net.gliby.voicechat.client.gui.GuiBoostSlider;
 import net.gliby.voicechat.client.gui.GuiCustomButton;
 import net.gliby.voicechat.client.gui.GuiDropDownMenu;
 import net.gliby.voicechat.client.gui.GuiScreenDonate;
-import net.gliby.voicechat.client.gui.GuiScreenLocalMute;
+import net.gliby.voicechat.client.gui.GuiScreenPlayerSettings;
 import net.gliby.voicechat.client.sound.MicrophoneTester;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -73,7 +73,7 @@ public class GuiScreenVoiceChatOptions extends GuiScreen {
                 mc.displayGuiScreen(new GuiScreenOptionsUI(voiceChat, this));
                 break;
             case 897:
-                if (!dropDown.dropDownMenu) mc.displayGuiScreen(new GuiScreenLocalMute(this, voiceChat));
+                if (!dropDown.dropDownMenu) mc.displayGuiScreen(new GuiScreenPlayerSettings(this, voiceChat));
 
                 break;
             case 5:
@@ -231,7 +231,7 @@ public class GuiScreenVoiceChatOptions extends GuiScreen {
                 (height / 2 + 73) - heightOffset,
                 304,
                 20,
-                I18n.format("menu.mutePlayers")));
+                I18n.format("menu.playerSettings")));
         buttonList.add(dropDown);
         if (voiceChat.getSettings()
             .getDeviceHandler()
