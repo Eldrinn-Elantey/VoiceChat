@@ -37,6 +37,7 @@ public class Settings {
     private int maxSoundDistance = 63;
     private boolean voicePlatesAllowed = true;
     private boolean voiceIconsAllowed = true;
+    private boolean showSpeakingIndicator = true;
     private int bufferSize = 144;
     private int modPackId = 1;
     private Map<String, Float> playerVolumes = new HashMap<String, Float>();
@@ -73,6 +74,14 @@ public class Settings {
 
     public int getEncodingMode() {
         return (int) MathUtility.clamp(encodingMode, 0, 2);
+    }
+
+    public final boolean isSpeakingIndicatorAllowed() {
+        return showSpeakingIndicator;
+    }
+
+    public final void setSpeakingIndicatorAllowed(boolean showSpeakingIndicator) {
+        this.showSpeakingIndicator = showSpeakingIndicator;
     }
 
     public String getEncodingModeString() {

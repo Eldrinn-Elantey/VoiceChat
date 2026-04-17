@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.1]
+
+### Added
+- Added toggle buttons in **UI Options** to show/hide:
+  - Voice Icons (above player heads)
+  - Voice Plates (speaker list in corner)
+  - Speaking Indicator (microphone icon when talking)
+- All HUD visibility settings are saved to config.
+
+### Fixed
+- Fixed accidental `super.onGuiClosed()` call in `updateScreen()`.
+
 ## [0.8.0]
 
 ### Added

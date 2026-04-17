@@ -48,3 +48,6 @@ menu.playerName=Player
 menu.volume=Volume
 menu.muted=MUTED
 menu.unmuted=ON
+menu.showVoiceIcons=Voice Icons: %s
+menu.showVoicePlates=Voice Plates: %s
+menu.showSpeakingIndicator=Speaking Indicator: %s

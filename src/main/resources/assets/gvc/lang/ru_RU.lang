@@ -47,3 +47,6 @@ menu.playerName=Игрок
 menu.volume=Громкость
 menu.muted=ВЫКЛ
 menu.unmuted=ВКЛ
+menu.showVoiceIcons=Значки голоса: %s
+menu.showVoicePlates=Голосовые панели: %s
+menu.showSpeakingIndicator=Индикатор речи: %s
