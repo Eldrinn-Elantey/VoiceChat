@@ -13,44 +13,45 @@ import net.gliby.voicechat.common.networking.voiceservers.EnumVoiceNetworkType;
  **/
 public class MinecraftVoiceClient extends VoiceClient {
 
-	private final ClientStreamManager soundManager;
+    private final ClientStreamManager soundManager;
 
-	public MinecraftVoiceClient(EnumVoiceNetworkType enumVoiceServer) {
-		super(enumVoiceServer);
-		VoiceChat.getProxyInstance();
-		soundManager = VoiceChatClient.getSoundManager();
-	}
+    public MinecraftVoiceClient(EnumVoiceNetworkType enumVoiceServer) {
+        super(enumVoiceServer);
+        VoiceChat.getProxyInstance();
+        soundManager = VoiceChatClient.getSoundManager();
+    }
 
-	@Override
-	public void handleEnd(int id) {
-		soundManager.alertEnd(id);
-	}
+    @Override
+    public void handleEnd(int id) {
+        soundManager.alertEnd(id);
+    }
 
-	@Override
-	public void handleEntityPosition(int entityID, double x, double y, double z) {
-		final PlayerProxy proxy = soundManager.playerData.get(entityID);
-		if (proxy != null) {
-			proxy.setPosition(x, y, z);
-		}
-	}
+    @Override
+    public void handleEntityPosition(int entityID, double x, double y, double z) {
+        final PlayerProxy proxy = soundManager.playerData.get(entityID);
+        if (proxy != null) {
+            proxy.setPosition(x, y, z);
+        }
+    }
 
-	@Override
-	public void handlePacket(int entityID, byte[] data, int chunkSize, boolean direct, byte volume) {
-		soundManager.getSoundPreProcessor().process(entityID, data, chunkSize, direct, volume);
-	}
+    @Override
+    public void handlePacket(int entityID, byte[] data, int chunkSize, boolean direct, byte volume) {
+        soundManager.getSoundPreProcessor()
+            .process(entityID, data, chunkSize, direct, volume);
+    }
 
-	@Override
-	public void sendVoiceData(byte division, byte[] samples, boolean end) {
-		if (end) VoiceChat.getDispatcher().sendToServer(new MinecraftServerVoiceEndPacket());
-		else VoiceChat.getDispatcher().sendToServer(new MinecraftServerVoicePacket(division, samples));
-	}
+    @Override
+    public void sendVoiceData(byte division, byte[] samples, boolean end) {
+        if (end) VoiceChat.getDispatcher()
+            .sendToServer(new MinecraftServerVoiceEndPacket());
+        else VoiceChat.getDispatcher()
+            .sendToServer(new MinecraftServerVoicePacket(division, samples));
+    }
 
-	@Override
-	public void start() {
-	}
+    @Override
+    public void start() {}
 
-	@Override
-	public void stop() {
-	}
+    @Override
+    public void stop() {}
 
 }

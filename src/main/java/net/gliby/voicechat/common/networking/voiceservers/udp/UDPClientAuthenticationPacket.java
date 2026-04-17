@@ -6,24 +6,24 @@ import com.google.common.io.ByteArrayDataOutput;
 
 public class UDPClientAuthenticationPacket extends UDPPacket {
 
-	String hash;
+    String hash;
 
-	public UDPClientAuthenticationPacket(String hash) {
-		this.hash = hash;
-	}
+    public UDPClientAuthenticationPacket(String hash) {
+        this.hash = hash;
+    }
 
-	@Override
-	public byte id() {
-		return 0;
-	}
+    @Override
+    public byte id() {
+        return 0;
+    }
 
-	@Override
-	public void write(ByteArrayDataOutput out) {
-		try {
-			UDPByteUtilities.writeBytes(hash.getBytes("UTF-8"), out);
-		} catch (final UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-	}
+    @Override
+    public void write(ByteArrayDataOutput out) {
+        try {
+            UDPByteUtilities.writeBytes(hash.getBytes("UTF-8"), out);
+        } catch (final UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
 
 }
