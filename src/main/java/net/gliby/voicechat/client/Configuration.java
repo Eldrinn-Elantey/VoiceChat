@@ -2,6 +2,8 @@ package net.gliby.voicechat.client;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.gliby.gman.JINIFile;
 import net.gliby.voicechat.VoiceChat;
@@ -25,6 +27,7 @@ public class Configuration {
     private final File location;
     private JINIFile init;
     private final Settings settings;
+    private static final String PLAYER_VOLUMES = "PlayerVolumes";
 
     Configuration(Settings settings, File file) {
         this.settings = settings;
@@ -100,6 +103,20 @@ public class Configuration {
                 settings.setSnooperAllowed(init.ReadBool("Miscellaneous", SNOOPER, false));
                 settings.setModPackID(init.ReadInteger("Miscellaneous", MODPACK_ID, 1));
                 settings.setDebug(init.ReadBool("Miscellaneous", DEBUG, false));
+                String volumesRaw = init.ReadString("Players", PLAYER_VOLUMES, "");
+                Map<String, Float> volumes = new HashMap<String, Float>();
+                if (!volumesRaw.isEmpty()) {
+                    String[] entries = volumesRaw.split(";");
+                    for (String entry : entries) {
+                        String[] parts = entry.split("=");
+                        if (parts.length == 2) {
+                            try {
+                                volumes.put(parts[0], Float.parseFloat(parts[1]));
+                            } catch (NumberFormatException e) {}
+                        }
+                    }
+                }
+                settings.setPlayerVolumes(volumes);
                 return true;
             }
         } catch (final Exception e) {
@@ -157,6 +174,15 @@ public class Configuration {
         init.WriteBool("Miscellaneous", SNOOPER, settings.isSnooperAllowed());
         init.WriteBool("Miscellaneous", DEBUG, settings.isDebug());
         init.WriteInteger("Miscellaneous", MODPACK_ID, settings.getModPackID());
+        StringBuilder volumesBuilder = new StringBuilder();
+        for (Map.Entry<String, Float> entry : settings.getPlayerVolumes()
+            .entrySet()) {
+            if (volumesBuilder.length() > 0) volumesBuilder.append(";");
+            volumesBuilder.append(entry.getKey())
+                .append("=")
+                .append(entry.getValue());
+        }
+        init.WriteString("Players", PLAYER_VOLUMES, volumesBuilder.toString());
         return init.UpdateFile();
     }
 }
