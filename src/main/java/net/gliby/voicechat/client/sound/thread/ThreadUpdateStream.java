@@ -12,16 +12,11 @@ import paulscode.sound.SoundSystemConfig;
 
 public class ThreadUpdateStream implements Runnable {
 
-    private final static int ARBITRARY_TIMEOUT = 325;
+    private static final int ARBITRARY_TIMEOUT = 325;
     private final Minecraft mc;
-
     private final VoiceChatClient voiceChat;
-
     private final ClientStreamManager manager;
 
-    /**
-     * Handles sound streams and sound position/velocity.
-     **/
     public ThreadUpdateStream(ClientStreamManager manager, VoiceChatClient voiceChatClient) {
         this.manager = manager;
         this.mc = Minecraft.getMinecraft();
@@ -36,20 +31,31 @@ public class ThreadUpdateStream implements Runnable {
                     SoundSystem sndSystem = mc.getSoundHandler().sndManager.sndSystem;
                     final ClientStream stream = VoiceChatClient.getSoundManager().currentStreams.get(i);
                     final String source = stream.generateSource();
-                    if (stream.needsEnd || stream.getLastTimeUpdatedMS() > (ARBITRARY_TIMEOUT))
-                        if (!sndSystem.playing(source)) manager.killStream(stream);
+
+                    if (stream.needsEnd || stream.getLastTimeUpdatedMS() > ARBITRARY_TIMEOUT) {
+                        if (!sndSystem.playing(source)) {
+                            manager.killStream(stream);
+                        }
+                    }
+
+                    float playerVolume = voiceChat.getSettings()
+                        .getPlayerVolume(stream.player.entityName());
+                    float clampedPlayerVol = Math.min(playerVolume, 1.0f);
+
                     if (stream.dirty) {
                         if (stream.volume >= 0) {
                             sndSystem.setVolume(
                                 source,
                                 voiceChat.getSettings()
-                                    .getWorldVolume() * (stream.volume * 0.01F));
+                                    .getWorldVolume() * (stream.volume * 0.01F)
+                                    * clampedPlayerVol);
                         } else {
                             sndSystem.setVolume(
                                 source,
                                 voiceChat.getSettings()
-                                    .getWorldVolume());
+                                    .getWorldVolume() * clampedPlayerVol);
                         }
+
                         sndSystem.setAttenuation(source, SoundSystemConfig.ATTENUATION_LINEAR);
                         sndSystem.setDistOrRoll(
                             source,
@@ -61,17 +67,25 @@ public class ThreadUpdateStream implements Runnable {
                     if (stream.direct) {
                         final Vector3f vector = stream.player.position();
                         sndSystem.setPosition(source, vector.x, vector.y, vector.z);
-                    } else sndSystem.setPosition(
-                        source,
-                        (float) mc.thePlayer.posX,
-                        (float) mc.thePlayer.posY,
-                        (float) mc.thePlayer.posZ);
+                    } else {
+                        sndSystem.setPosition(
+                            source,
+                            (float) mc.thePlayer.posX,
+                            (float) mc.thePlayer.posY,
+                            (float) mc.thePlayer.posZ);
+                    }
 
                     if (stream.volume >= 0) {
                         sndSystem.setVolume(
                             source,
                             voiceChat.getSettings()
-                                .getWorldVolume() * (stream.volume * 0.01F));
+                                .getWorldVolume() * (stream.volume * 0.01F)
+                                * clampedPlayerVol);
+                    } else {
+                        sndSystem.setVolume(
+                            source,
+                            voiceChat.getSettings()
+                                .getWorldVolume() * clampedPlayerVol);
                     }
 
                     Minecraft.getMinecraft()
@@ -82,8 +96,8 @@ public class ThreadUpdateStream implements Runnable {
                                 stream.player.update(mc.theWorld);
                             }
                         });
-
                 }
+
                 try {
                     synchronized (this) {
                         wait(34);
