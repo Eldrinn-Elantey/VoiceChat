@@ -1,0 +1,12 @@
+// Add any additional repositories for your dependencies here.
+
+repositories {
+    maven {
+        name = "JBoss Releases"
+        url = uri("https://repository.jboss.org/maven2/")
+        metadataSources {
+            artifact()
+        }
+    }
+
+}
