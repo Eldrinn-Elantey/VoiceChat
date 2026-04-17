@@ -4,13 +4,12 @@ import com.google.common.io.ByteArrayDataOutput;
 
 public class UDPServerAuthenticationCompletePacket extends UDPPacket {
 
-	@Override
-	public byte id() {
-		return 0;
-	}
+    @Override
+    public byte id() {
+        return 0;
+    }
 
-	@Override
-	public void write(ByteArrayDataOutput out) {
-	}
+    @Override
+    public void write(ByteArrayDataOutput out) {}
 
 }

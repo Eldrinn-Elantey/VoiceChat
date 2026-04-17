@@ -34,178 +34,193 @@ import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
 public class VoiceChatServer {
-	public static final String VERSION = "0.6.1";
-	private static final String MC_VERSION = "1.7.10";
-	protected static final Logger LOGGER = LogManager.getLogger("Gliby's Voice Chat Mod");
 
-	public static boolean available(int port) {
-		if (port < 4000 || port > 65535) { throw new IllegalArgumentException("Invalid start port: " + port); }
+    public static final String VERSION = "0.6.1";
+    private static final String MC_VERSION = "1.7.10";
+    protected static final Logger LOGGER = LogManager.getLogger("Gliby's Voice Chat Mod");
 
-		ServerSocket ss = null;
-		DatagramSocket ds = null;
-		try {
-			ss = new ServerSocket(port);
-			ss.setReuseAddress(true);
-			ds = new DatagramSocket(port);
-			ds.setReuseAddress(true);
-			return true;
-		} catch (final IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (ds != null) {
-				ds.close();
-			}
+    public static boolean available(int port) {
+        if (port < 4000 || port > 65535) {
+            throw new IllegalArgumentException("Invalid start port: " + port);
+        }
 
-			if (ss != null) {
-				try {
-					ss.close();
-				} catch (final IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		return false;
-	}
+        ServerSocket ss = null;
+        DatagramSocket ds = null;
+        try {
+            ss = new ServerSocket(port);
+            ss.setReuseAddress(true);
+            ds = new DatagramSocket(port);
+            ds.setReuseAddress(true);
+            return true;
+        } catch (final IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (ds != null) {
+                ds.close();
+            }
 
-	public static synchronized Logger getLogger() {
-		return LOGGER;
-	}
+            if (ss != null) {
+                try {
+                    ss.close();
+                } catch (final IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
+    }
 
-	public static String getMinecraftVersion() {
-		return MC_VERSION;
-	}
+    public static synchronized Logger getLogger() {
+        return LOGGER;
+    }
 
-	public static int randInt(int min, int max) {
-		final Random rand = new Random();
-		final int randomNum = rand.nextInt((max - min) + 1) + min;
-		return randomNum;
-	}
+    public static String getMinecraftVersion() {
+        return MC_VERSION;
+    }
 
-	public ModInfo modInfo;
+    public static int randInt(int min, int max) {
+        final Random rand = new Random();
+        final int randomNum = rand.nextInt((max - min) + 1) + min;
+        return randomNum;
+    }
 
-	private VoiceServer voiceServer;
+    public ModInfo modInfo;
 
-	private Thread voiceServerThread;
+    private VoiceServer voiceServer;
 
-	public ServerNetwork serverNetwork;
+    private Thread voiceServerThread;
 
-	public ServerSettings serverSettings;
+    public ServerNetwork serverNetwork;
 
-	private File configurationDirectory;
+    public ServerSettings serverSettings;
 
-	public void commonInit(final FMLPreInitializationEvent event) {
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				GMan.launchMod(getLogger(), modInfo = new ModInfo(VoiceChat.MOD_ID, event.getModMetadata().updateUrl), getMinecraftVersion(), getVersion());
-			}
-		});
-		new VoiceChatAPI().init();
-	}
+    private File configurationDirectory;
 
-	private int getAvailablePort() throws IOException {
-		int port = 0;
-		do {
-			port = randInt(4001, 65534);
-		} while (!available(port));
+    public void commonInit(final FMLPreInitializationEvent event) {
+        Executors.newSingleThreadExecutor()
+            .execute(new Runnable() {
 
-		return port;
-	}
+                @Override
+                public void run() {
+                    GMan.launchMod(
+                        getLogger(),
+                        modInfo = new ModInfo(VoiceChat.MOD_ID, event.getModMetadata().updateUrl),
+                        getMinecraftVersion(),
+                        getVersion());
+                }
+            });
+        new VoiceChatAPI().init();
+    }
 
-	public ModInfo getModInfo() {
-		return modInfo;
-	}
+    private int getAvailablePort() throws IOException {
+        int port = 0;
+        do {
+            port = randInt(4001, 65534);
+        } while (!available(port));
 
-	private int getNearestPort(int port) {
-		return ++port;
-	}
+        return port;
+    }
 
-	public synchronized ServerNetwork getServerNetwork() {
-		return serverNetwork;
-	}
+    public ModInfo getModInfo() {
+        return modInfo;
+    }
 
-	public ServerSettings getServerSettings() {
-		return serverSettings;
-	}
+    private int getNearestPort(int port) {
+        return ++port;
+    }
 
-	public String getVersion() {
-		return VERSION;
-	}
+    public synchronized ServerNetwork getServerNetwork() {
+        return serverNetwork;
+    }
 
+    public ServerSettings getServerSettings() {
+        return serverSettings;
+    }
 
-	public VoiceServer getVoiceServer() {
-		return voiceServer;
-	}
+    public String getVersion() {
+        return VERSION;
+    }
 
-	public void initMod(VoiceChat voiceChat, FMLInitializationEvent event) {}
+    public VoiceServer getVoiceServer() {
+        return voiceServer;
+    }
 
-	public void initServer(FMLServerStartedEvent event) {
-		final MinecraftServer server = MinecraftServer.getServer();
-		if (serverSettings.getUDPPort() == 0) {
-			if (server.isDedicatedServer()) {
-				int queryPort = -1;
-				if (((DedicatedServer) server).getBooleanProperty("enable-query", false)) queryPort = ((DedicatedServer) server).getIntProperty("query.port", 0);
-				final boolean portTaken = queryPort == server.getServerPort();
-				serverSettings.setUDPPort(portTaken ? getNearestPort(server.getPort()) : server.getPort());
-				if (portTaken) VoiceChatServer.getLogger().warn("Hey! Over Here! It seems you are running a query on the default port. We can't run a voice server on this port, so I've found a new one just for you! I'd recommend changing the UDPPort in your configuration, if the voice server can't bind!");
-			} else {
-				try {
-					serverSettings.setUDPPort(getAvailablePort());
-				} catch (final IOException e) {
-					VoiceChatServer.getLogger().fatal("Couldn't start voice server.");
-					e.printStackTrace();
-					return;
-				}
-			}
-		}
-		voiceServerThread = startVoiceServer();
-	}
+    public void initMod(VoiceChat voiceChat, FMLInitializationEvent event) {}
 
-	public void postInitMod(VoiceChat voiceChat, FMLPostInitializationEvent event) {}
+    public void initServer(FMLServerStartedEvent event) {
+        final MinecraftServer server = MinecraftServer.getServer();
+        if (serverSettings.getUDPPort() == 0) {
+            if (server.isDedicatedServer()) {
+                int queryPort = -1;
+                if (((DedicatedServer) server).getBooleanProperty("enable-query", false))
+                    queryPort = ((DedicatedServer) server).getIntProperty("query.port", 0);
+                final boolean portTaken = queryPort == server.getServerPort();
+                serverSettings.setUDPPort(portTaken ? getNearestPort(server.getPort()) : server.getPort());
+                if (portTaken) VoiceChatServer.getLogger()
+                    .warn(
+                        "Hey! Over Here! It seems you are running a query on the default port. We can't run a voice server on this port, so I've found a new one just for you! I'd recommend changing the UDPPort in your configuration, if the voice server can't bind!");
+            } else {
+                try {
+                    serverSettings.setUDPPort(getAvailablePort());
+                } catch (final IOException e) {
+                    VoiceChatServer.getLogger()
+                        .fatal("Couldn't start voice server.");
+                    e.printStackTrace();
+                    return;
+                }
+            }
+        }
+        voiceServerThread = startVoiceServer();
+    }
 
-	public void preInitClient(FMLPreInitializationEvent event) {}
+    public void postInitMod(VoiceChat voiceChat, FMLPostInitializationEvent event) {}
 
-	public void preInitServer(FMLServerStartingEvent event) {
-		event.registerServerCommand(new CommandVoiceMute());
-		event.registerServerCommand(new CommandChatMode());
-	}
+    public void preInitClient(FMLPreInitializationEvent event) {}
 
-	private Thread startVoiceServer() {
-		serverNetwork = new ServerNetwork(this);
-		serverNetwork.init();
-		switch (serverSettings.getAdvancedNetworkType()) {
-		case 0:
-			voiceServer = new MinecraftVoiceServer(this);
-			break;
-		case 1:
-			voiceServer = new UDPVoiceServer(this);
-			break;
-		default:
-			voiceServer = new MinecraftVoiceServer(this);
-			break;
-		}
-		final Thread thread = new Thread(voiceServer, "Voice Server Process");
-		thread.setDaemon(voiceServer instanceof VoiceAuthenticatedServer);
-		thread.start();
-		return thread;
-	}
+    public void preInitServer(FMLServerStartingEvent event) {
+        event.registerServerCommand(new CommandVoiceMute());
+        event.registerServerCommand(new CommandChatMode());
+    }
 
-	public void stop() {
-		serverNetwork.stop();
-		if (voiceServer instanceof VoiceAuthenticatedServer) ((VoiceAuthenticatedServer) voiceServer).waitingAuth.clear();
-		voiceServer.stop();
-		voiceServer = null;
-		voiceServerThread.stop();
-	}
+    private Thread startVoiceServer() {
+        serverNetwork = new ServerNetwork(this);
+        serverNetwork.init();
+        switch (serverSettings.getAdvancedNetworkType()) {
+            case 0:
+                voiceServer = new MinecraftVoiceServer(this);
+                break;
+            case 1:
+                voiceServer = new UDPVoiceServer(this);
+                break;
+            default:
+                voiceServer = new MinecraftVoiceServer(this);
+                break;
+        }
+        final Thread thread = new Thread(voiceServer, "Voice Server Process");
+        thread.setDaemon(voiceServer instanceof VoiceAuthenticatedServer);
+        thread.start();
+        return thread;
+    }
 
-	/**
-	 * @param event
-	 */
-	public void aboutToStartServer(FMLServerAboutToStartEvent event) {
-		FMLCommonHandler.instance().bus().register(new ServerConnectionHandler(this));
-		serverSettings = new ServerSettings(this);
-		configurationDirectory = new File("config/gliby_vc");
-		if (!configurationDirectory.exists()) configurationDirectory.mkdir();
-		serverSettings.preInit(new File(configurationDirectory, "ServerSettings.ini"));
-	}
+    public void stop() {
+        serverNetwork.stop();
+        if (voiceServer instanceof VoiceAuthenticatedServer)
+            ((VoiceAuthenticatedServer) voiceServer).waitingAuth.clear();
+        voiceServer.stop();
+        voiceServer = null;
+        voiceServerThread.stop();
+    }
+
+    /**
+     * @param event
+     */
+    public void aboutToStartServer(FMLServerAboutToStartEvent event) {
+        FMLCommonHandler.instance()
+            .bus()
+            .register(new ServerConnectionHandler(this));
+        serverSettings = new ServerSettings(this);
+        configurationDirectory = new File("config/gliby_vc");
+        if (!configurationDirectory.exists()) configurationDirectory.mkdir();
+        serverSettings.preInit(new File(configurationDirectory, "ServerSettings.ini"));
+    }
 }

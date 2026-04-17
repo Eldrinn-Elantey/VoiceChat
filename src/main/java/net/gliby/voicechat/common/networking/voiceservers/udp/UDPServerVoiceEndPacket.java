@@ -4,19 +4,19 @@ import com.google.common.io.ByteArrayDataOutput;
 
 public class UDPServerVoiceEndPacket extends UDPPacket {
 
-	int entityID;
+    int entityID;
 
-	public UDPServerVoiceEndPacket(int entityID) {
-		this.entityID = entityID;
-	}
+    public UDPServerVoiceEndPacket(int entityID) {
+        this.entityID = entityID;
+    }
 
-	@Override
-	public byte id() {
-		return 2;
-	}
+    @Override
+    public byte id() {
+        return 2;
+    }
 
-	@Override
-	public void write(ByteArrayDataOutput out) {
-		out.writeInt(entityID);
-	}
+    @Override
+    public void write(ByteArrayDataOutput out) {
+        out.writeInt(entityID);
+    }
 }
