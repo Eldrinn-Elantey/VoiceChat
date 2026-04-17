@@ -6,11 +6,9 @@
     "version": "${modVersion}",
     "mcversion": "${minecraftVersion}",
     "logoFile": "gvclogo.png",
-    "url": "http://gliby.net/",
-    "updateUrl": "http://mods.gliby.net/gliby_vc",
-    "authors": ["@theGliby aka theGliby"],
-    "credits": "Made by @theGliby",
-    "parent": "",
+    "url": "https://github.com/Eldrinn-Elantey/VoiceChat",
+    "authorList": ["@theGliby aka theGliby", "Eldrinn Elantey"],
+    "credits": "Original mod by theGliby. Fork and maintenance by Eldrinn Elantey.",
     "screenshots": [],
     "dependencies": []
   }
