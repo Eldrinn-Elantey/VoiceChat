@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.2]
+
+### Fixed
+- Prevented push-to-talk from activating while GUI screens are open.
+- Reduced conflicts with inventory search fields and other keyboard-driven interfaces.
+
 ## [0.8.1]
 
 ### Added
