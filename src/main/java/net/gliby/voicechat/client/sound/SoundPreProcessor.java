@@ -72,15 +72,6 @@ public class SoundPreProcessor {
             buffer = new byte[0];
             for (int i = 0; i < samplesList.size(); i++) {
                 final byte[] sample = (byte[]) samplesList.get(i);
-                final SpeexDecoder tempDecoder = new SpeexDecoder();
-                tempDecoder.init(
-                    0,
-                    (int) ClientStreamManager.getUniversalAudioFormat()
-                        .getSampleRate(),
-                    ClientStreamManager.getUniversalAudioFormat()
-                        .getChannels(),
-                    voiceChat.getSettings()
-                        .isPerceptualEnchantmentAllowed());
                 try {
                     decoder.processData(sample, 0, sample.length);
                 } catch (final StreamCorruptedException e) {
