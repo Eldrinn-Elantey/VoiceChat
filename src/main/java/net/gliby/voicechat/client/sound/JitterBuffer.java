@@ -1,25 +1,32 @@
 package net.gliby.voicechat.client.sound;
 
+import java.util.Arrays;
+
 import javax.sound.sampled.AudioFormat;
 
 class JitterBuffer {
 
+    private static final int INITIAL_CAPACITY = 4096;
+
     private byte[] buffer;
+    private int writePos;
     private final AudioFormat format;
     private int threshold;
 
     JitterBuffer(AudioFormat format, int jitter) {
         this.format = format;
+        this.buffer = new byte[INITIAL_CAPACITY];
+        this.writePos = 0;
         updateJitter(jitter);
     }
 
     void clearBuffer(int jitterSize) {
-        buffer = new byte[0];
+        writePos = 0;
         updateJitter(jitterSize);
     }
 
     byte[] get() {
-        return buffer;
+        return Arrays.copyOf(buffer, writePos);
     }
 
     private int getSizeInBytes(AudioFormat fmt, int size) {
@@ -29,22 +36,22 @@ class JitterBuffer {
     }
 
     public boolean isReady() {
-        return buffer.length > threshold;
+        return writePos > threshold;
     }
 
     void push(byte[] data) {
-        write(data);
+        ensureCapacity(writePos + data.length);
+        System.arraycopy(data, 0, buffer, writePos, data.length);
+        writePos += data.length;
     }
 
     void updateJitter(int size) {
         this.threshold = getSizeInBytes(format, size);
-        if (buffer == null) buffer = threshold != 0 ? new byte[3 * this.threshold] : new byte[320];
     }
 
-    private void write(byte[] write) {
-        final byte[] result = new byte[buffer.length + write.length];
-        System.arraycopy(buffer, 0, result, 0, buffer.length);
-        System.arraycopy(write, 0, result, buffer.length, write.length);
-        buffer = result;
+    private void ensureCapacity(int needed) {
+        if (needed > buffer.length) {
+            buffer = Arrays.copyOf(buffer, Math.max(needed, buffer.length * 2));
+        }
     }
 }
