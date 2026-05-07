@@ -59,8 +59,15 @@ public class RenderPlayerVoiceIcon extends Gui {
 
     @SubscribeEvent
     public void render(RenderWorldLastEvent event) {
-        if (!VoiceChatClient.getSoundManager().currentStreams.isEmpty() && voiceChat.getSettings()
-            .isVoiceIconAllowed()) {
+        if (VoiceChatClient.getSoundManager().currentStreams.isEmpty()) return;
+        if (!voiceChat.getSettings()
+            .isVoiceIconAllowed()) return;
+
+        // Other mods (e.g. JourneyMap) also render in RenderWorldLastEvent.
+        // Preserve/restore GL state to avoid breaking their render passes.
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        glPushMatrix();
+        try {
             glDisable(GL11.GL_DEPTH_TEST);
             glEnable(GL11.GL_BLEND);
             OpenGlHelper.glBlendFunc(770, 771, 1, 0);
@@ -75,34 +82,37 @@ public class RenderPlayerVoiceIcon extends Gui {
                     final EntityLivingBase entity = (EntityLivingBase) stream.player.getPlayer();
                     if (!entity.isInvisible() && !mc.gameSettings.hideGUI) {
                         glPushMatrix();
-                        enableEntityLighting(entity, event.partialTicks);
-                        glNormal3f(0.0F, 1.0F, 0.0F);
-                        glDepthMask(false);
-                        translateEntity(entity, event.partialTicks);
-                        glRotatef(-RenderManager.instance.playerViewY, 0.0F, 1.0F, 0.0F);
-                        glTranslatef(-0.25f, entity.height + 0.7f, 0);
-                        glRotatef(RenderManager.instance.playerViewX, 1.0F, 0.0F, 0.0F);
-                        glScalef(0.015f, 0.015f, 1.0f);
-                        IndependentGUITexture.TEXTURES.bindTexture(mc);
-                        // glEnable(GL11.GL_TEXTURE_2D);
-                        glColor4f(1.0F, 1.0F, 1.0F, 0.25F);
-                        if (!entity.isSneaking()) renderIcon();
-                        glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-                        glEnable(GL11.GL_DEPTH_TEST);
-                        glDepthMask(true);
-                        renderIcon();
-                        IndependentGUITexture.bindPlayer(mc, entity);
-                        glTranslatef(20, 30, 0);
-                        glScalef(-1, -1, -1);
-                        glScalef(0.64f * 0.75f, 0.32f * 0.75f, 0.0f);
-                        drawTexturedModalRect(0, 0, 32, 64, 32, 64);
-                        disableEntityLighting();
-                        glPopMatrix();
+                        try {
+                            enableEntityLighting(entity, event.partialTicks);
+                            glNormal3f(0.0F, 1.0F, 0.0F);
+                            glDepthMask(false);
+                            translateEntity(entity, event.partialTicks);
+                            glRotatef(-RenderManager.instance.playerViewY, 0.0F, 1.0F, 0.0F);
+                            glTranslatef(-0.25f, entity.height + 0.7f, 0);
+                            glRotatef(RenderManager.instance.playerViewX, 1.0F, 0.0F, 0.0F);
+                            glScalef(0.015f, 0.015f, 1.0f);
+                            IndependentGUITexture.TEXTURES.bindTexture(mc);
+                            glColor4f(1.0F, 1.0F, 1.0F, 0.25F);
+                            if (!entity.isSneaking()) renderIcon();
+                            glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+                            glEnable(GL11.GL_DEPTH_TEST);
+                            glDepthMask(true);
+                            renderIcon();
+                            IndependentGUITexture.bindPlayer(mc, entity);
+                            glTranslatef(20, 30, 0);
+                            glScalef(-1, -1, -1);
+                            glScalef(0.64f * 0.75f, 0.32f * 0.75f, 0.0f);
+                            drawTexturedModalRect(0, 0, 32, 64, 32, 64);
+                            disableEntityLighting();
+                        } finally {
+                            glPopMatrix();
+                        }
                     }
                 }
             }
-            glDisable(GL11.GL_BLEND);
-            glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        } finally {
+            glPopMatrix();
+            GL11.glPopAttrib();
         }
     }
 
